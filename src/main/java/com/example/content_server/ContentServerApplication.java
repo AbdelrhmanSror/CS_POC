@@ -1,7 +1,10 @@
 package com.example.content_server;
 
 import com.example.content_server.repository.WorkFlowPocRepository;
-import com.example.content_server.service.*;
+import com.example.content_server.service.AuthenticationService;
+import com.example.content_server.service.CategoryService;
+import com.example.content_server.service.NodeService;
+import com.example.content_server.service.WorkflowService;
 import com.example.content_server.utility.Utilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,11 +63,6 @@ public class ContentServerApplication {
         return builder.build();
     }
 
-
-    @Bean
-    public PermissionService permission() {
-        return new PermissionService();
-    }
 
     @Bean
     public AuthenticationService authentication() {
