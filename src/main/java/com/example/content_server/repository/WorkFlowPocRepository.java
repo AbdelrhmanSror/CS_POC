@@ -14,7 +14,7 @@ import java.util.List;
 @Repository
 public interface WorkFlowPocRepository extends CrudRepository<WorkFlowPoc, PrimaryKeyPoc> {
 
-    @Query(value = "select WF_ID,WF_AttrID,WF_ValDate,WF_ValStr,WF_ValLong from WFAttrData where WF_ID=:id", nativeQuery = true)
+    @Query(value = "select WF_ID,WF_AttrID,WF_ValDate,WF_ValStr,WF_ValLong,WF_ValInt from WFAttrData where WF_ID=:id", nativeQuery = true)
     List<WorkFlowPoc> findAllWorkFlowWIthId(@Param("id") long id);
 
     @Modifying
@@ -38,8 +38,18 @@ public interface WorkFlowPocRepository extends CrudRepository<WorkFlowPoc, Prima
     void updateResidence(@Param("wf_id") long id, @Param("residence") String residence);
 
 
-    @Query(value = "select  TOP (1) SubWork_WorkID from WSubWork where SubWork_Title='POC_workflow'  order by SubWork_DateInitiated desc", nativeQuery = true)
+    @Query(value = "select  TOP (1) SubWork_WorkID from WSubWork where SubWork_Title='POC_workflow' order by SubWork_DateInitiated desc", nativeQuery = true)
     Long getWorkFlowId();
+
+    @Query(value = "with WF_CTE (WF_PROCESS)\n" +
+            "AS \n" +
+            "(select   TOP (1) SubWork_WorkID from WSubWork where SubWork_Title='POC_workflow'  order by SubWork_DateInitiated desc)\n" +
+            "(select Data_UserData  from WData,WF_CTE where Data_Type = 1 AND Data_SubType = 1 AND Data_WorkID =WF_PROCESS)\n" +
+            "\n" +
+            "\n" +
+            "\n" +
+            "\n", nativeQuery = true)
+    Integer getWorkFlowAttachmentFolderId(@Param("workFlowProcessId") Long workFlowProcessId);
 
 
 }

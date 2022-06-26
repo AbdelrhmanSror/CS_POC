@@ -28,6 +28,9 @@ public class WorkFlowPoc {
     @Column(name = "WF_ValLong")
     private String WF_ValLong;
 
+    @Column(name = "WF_ValInt")
+    private Integer WF_ValInt;
+
     public WorkFlowPoc() {
 
     }
@@ -58,6 +61,14 @@ public class WorkFlowPoc {
 
     public String getWF_ValLong() {
         return WF_ValLong;
+    }
+
+    public Integer getWF_ValInt() {
+        return WF_ValInt;
+    }
+
+    public void setWF_ValInt(Integer WF_ValInt) {
+        this.WF_ValInt = WF_ValInt;
     }
 
     public void setWF_ValLong(String WF_ValLong) {

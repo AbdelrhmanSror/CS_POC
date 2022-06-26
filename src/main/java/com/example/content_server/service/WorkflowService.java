@@ -20,9 +20,9 @@ public class WorkflowService {
     private AuthenticationService authenticationService;
 
     // function responsible for get the content server token that will allow us to access content server and do whatever we want.
-    public String initiate(String workflowId) {
+    public Integer initiate(Integer workflowId) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add(OTCS_TICKET, authenticationService.getToken(USER_NAME, PASSWORD));
+        headers.add(OTCS_TICKET, authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD));
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         MultiValueMap<String, String> bodyParams = new LinkedMultiValueMap<>();
         bodyParams.add("body", "{\n" +
@@ -32,23 +32,22 @@ public class WorkflowService {
                 "}");
 
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(bodyParams, headers);
-        return restTemplate.postForEntity(main_path + secondaryPath, httpEntity, WorkFlow.class).getBody().getProcessId()
-                ;
+        return restTemplate.postForEntity(main_path + secondaryPath, httpEntity, WorkFlow.class).getBody().getProcessId();
     }
 
     // function responsible for get the content server token that will allow us to access content server and do whatever we want.
-    public String getWorkFlowAttachmentFolderId(String processIDWorkFlow) {
+    public Integer getWorkFlowAttachmentFolderId(Integer processIDWorkFlowId) {
         HttpHeaders headers = new HttpHeaders();
-        String token = authenticationService.getToken(USER_NAME, PASSWORD);
+        String token = authenticationService.getToken(ABE_BRANCH_MAKER_USER_NAME, ABE_BRANCH_MAKER_PASSWORD);
         headers.add(OTCS_TICKET, token);
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         ResponseEntity<WorkFlowAttachment> entity = restTemplate.exchange(
-                main_path + "api/v1/forms/processes/tasks/update?process_id=" + processIDWorkFlow + "&subprocess_id=" + processIDWorkFlow + "&task_id=1", HttpMethod.GET, new HttpEntity(headers),
+                main_path + "api/v1/forms/processes/tasks/update?process_id=" + processIDWorkFlowId + "&subprocess_id=" + processIDWorkFlowId + "&task_id=1", HttpMethod.GET, new HttpEntity(headers),
                 WorkFlowAttachment.class);
         System.out.println(entity);
 
         System.out.println("response entity " + entity.getBody().getId());
-        System.out.println("processsFolder====" + processIDWorkFlow);
+        System.out.println("processsFolder====" + processIDWorkFlowId);
 
         return entity.getBody().getId();
 

@@ -18,14 +18,12 @@ public class CategoryService {
     @Autowired
     private AuthenticationService authenticationService;
     @Autowired
-    private PermissionService permissionService;
-    @Autowired
     private NodeService nodeService;
     @Autowired
     private RestTemplate restTemplate;
 
 
-    public void applyPocCategory(String otcsticket, String nodeId, WorkFlowPocAttribute workFlowPocAttribute) {
+    public void applyPocCategory(String otcsticket, Integer nodeId, WorkFlowPocAttribute workFlowPocAttribute) {
         HttpHeaders headers = new HttpHeaders();
         headers.add(OTCS_TICKET, otcsticket);
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -64,7 +62,7 @@ public class CategoryService {
     }
 
 
-    public void updateCategory(String otcsticket, String nodeId, WorkFlowPocAttribute workFlowPocAttribute) {
+    public void updateCategory(String otcsticket, Integer nodeId, WorkFlowPocAttribute workFlowPocAttribute) {
         HttpHeaders headers = new HttpHeaders();
         headers.add(OTCS_TICKET, otcsticket);
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

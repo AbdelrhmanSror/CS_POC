@@ -10,9 +10,9 @@ public class WorkFlowPocAttribute {
     private String residence;
     private String accountCreationBranch;
     private Date requestReceivedDate;
-    private String orderSerialNumber;
-    private String customerAnnualIncome;
-    private String approximateMonthlyDeposit;
+    private Integer orderSerialNumber;
+    private Integer customerAnnualIncome;
+    private Integer approximateMonthlyDeposit;
     private String notes;
     private String status;
 
@@ -64,27 +64,27 @@ public class WorkFlowPocAttribute {
         this.requestReceivedDate = requestReceivedDate;
     }
 
-    public String getOrderSerialNumber() {
+    public Integer getOrderSerialNumber() {
         return orderSerialNumber;
     }
 
-    public void setOrderSerialNumber(String orderSerialNumber) {
+    public void setOrderSerialNumber(Integer orderSerialNumber) {
         this.orderSerialNumber = orderSerialNumber;
     }
 
-    public String getCustomerAnnualIncome() {
+    public Integer getCustomerAnnualIncome() {
         return customerAnnualIncome;
     }
 
-    public void setCustomerAnnualIncome(String customerAnnualIncome) {
+    public void setCustomerAnnualIncome(Integer customerAnnualIncome) {
         this.customerAnnualIncome = customerAnnualIncome;
     }
 
-    public String getApproximateMonthlyDeposit() {
+    public Integer getApproximateMonthlyDeposit() {
         return approximateMonthlyDeposit;
     }
 
-    public void setApproximateMonthlyDeposit(String approximateMonthlyDeposit) {
+    public void setApproximateMonthlyDeposit(Integer approximateMonthlyDeposit) {
         this.approximateMonthlyDeposit = approximateMonthlyDeposit;
     }
 

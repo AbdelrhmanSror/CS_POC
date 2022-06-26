@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class WorkFlowAttachment {
 
-    private String id = null;
+    private Integer id = null;
 
     @SuppressWarnings("unchecked")
     //mapping to the main json object and then continue to dive into deeper level
@@ -16,7 +16,7 @@ public class WorkFlowAttachment {
         try {
             Map<String, Object> data_package = ((ArrayList<Map<String, Object>>) data.get("data_packages")).get(0);
             Map<String, Object> properties = (Map<String, Object>) data_package.get("data");
-            this.id = (String.valueOf(((int) properties.get("attachment_folder_id"))));
+            this.id = (Integer) properties.get("attachment_folder_id");
             System.out.println("id  " + id);
 
         } catch (NullPointerException e) {
@@ -24,7 +24,7 @@ public class WorkFlowAttachment {
         }
     }
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 }

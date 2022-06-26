@@ -1,10 +1,8 @@
 package com.example.content_server;
 
+import com.example.content_server.repository.CustomerRepository;
 import com.example.content_server.repository.WorkFlowPocRepository;
-import com.example.content_server.service.AuthenticationService;
-import com.example.content_server.service.CategoryService;
-import com.example.content_server.service.NodeService;
-import com.example.content_server.service.WorkflowService;
+import com.example.content_server.service.*;
 import com.example.content_server.utility.Utilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +31,7 @@ public class ContentServerApplication {
 
 
     @Bean
-    public CommandLineRunner demo(WorkFlowPocRepository repository) {
+    public CommandLineRunner demo(WorkFlowPocRepository repository, CustomerRepository customerRepository) {
         return (args -> {
             /**
              * <?xml version="1.0"?>
@@ -50,6 +48,9 @@ public class ContentServerApplication {
              */
             // fetch all customers
             log.info("Customers Saved with SAVe():");
+
+
+            log.info("ocr= " + customerRepository.findById(58795L));
             log.info("ORDER ID= " + Utilities.getWorkFlowPocAttributes(repository.findAllWorkFlowWIthId(814140)));
             //new NodeService().createNode(new AuthenticationService().getToken("admin","Asset99a"), NodeType.FOLDER.getNodeTypeId(),"811398","xyztest");
             log.info("count= " + repository.getWorkFlowId());
@@ -70,6 +71,11 @@ public class ContentServerApplication {
     }
 
     @Bean
+    public POCService pocService() {
+        return new POCService();
+    }
+
+    @Bean
     public NodeService nodeRepository() {
         return new NodeService();
     }
@@ -79,7 +85,6 @@ public class ContentServerApplication {
     public CategoryService categoryRepository() {
         return new CategoryService();
     }
-
 
     @Bean
     public WorkflowService workflow() {

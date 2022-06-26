@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class Node {
 
-    private String id = null;
+    private Integer id = null;
     private String name = "";
     private WorkFlowPocAttribute workFlowPocAttribute = null;
 
@@ -40,7 +40,7 @@ public class Node {
             Map<String, Object> data = (Map<String, Object>) results.get("data");
             List<Map<String, Object>> category = ((ArrayList<Map<String, Object>>) data.get("categories"));
             Map<String, Object> properties = (Map<String, Object>) data.get("properties");
-            this.id = (String.valueOf(((int) properties.get("id"))));
+            this.id = (Integer) properties.get("id");
             this.name = (String.valueOf(properties.get("name")));
 
             if (!category.isEmpty()) {
@@ -55,7 +55,7 @@ public class Node {
         }
     }
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 

@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class SubNode {
 
-    private List<String> id = new ArrayList<>();
+    private Integer id = null;
 
 
     @SuppressWarnings("unchecked")
@@ -27,9 +27,10 @@ public class SubNode {
     //mapping to the main json object and then continue to dive into deeper level
     private void unpackArray(List<Map<String, Object>> results) {
         if (!results.isEmpty()) {
-            for (Map<String, Object> result : results) {
-                unpackObject(result);
+            for (int i = 0; i < results.size(); i++) {
+                System.out.println(results.get(i));
             }
+            unpackObject(results.get(results.size() - 1));
         }
     }
 
@@ -39,14 +40,14 @@ public class SubNode {
         try {
             Map<String, Object> data = (Map<String, Object>) results.get("data");
             Map<String, Object> nicknames = (Map<String, Object>) data.get("nicknames");
-            this.id.add((String) nicknames.get("nickname"));
+            this.id = Integer.valueOf((String) nicknames.get("nickname"));
 
         } catch (NullPointerException e) {
             id = null;
         }
     }
 
-    public List<String> getIds() {
+    public Integer getId() {
         return id;
     }
 

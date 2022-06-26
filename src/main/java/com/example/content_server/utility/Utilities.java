@@ -20,11 +20,11 @@ public class Utilities {
             } else if (isAccountCreationBranchSelected(flowPoc)) {
                 attribute.setAccountCreationBranch(flowPoc.getWF_ValStr());
             } else if (isOrderSerialNumberSelected(flowPoc)) {
-                attribute.setOrderSerialNumber(flowPoc.getWF_ValStr());
+                attribute.setOrderSerialNumber(flowPoc.getWF_ValInt());
             } else if (isCustomerAnnualIncomeSelected(flowPoc)) {
-                attribute.setCustomerAnnualIncome(flowPoc.getWF_ValStr());
+                attribute.setCustomerAnnualIncome(flowPoc.getWF_ValInt());
             } else if (isApproximateMonthlyDepositSelected(flowPoc)) {
-                attribute.setApproximateMonthlyDeposit(flowPoc.getWF_ValStr());
+                attribute.setApproximateMonthlyDeposit(flowPoc.getWF_ValInt());
             } else if (isNotesSelected(flowPoc)) {
                 attribute.setNotes(flowPoc.getWF_ValLong());
             } else if (isStatusSelected(flowPoc)) {
@@ -57,15 +57,15 @@ public class Utilities {
     }
 
     private static boolean isApproximateMonthlyDepositSelected(WorkFlowPoc workFlowPoc2) {
-        return workFlowPoc2.getMyKey().getWF_AttrID() == 10;
+        return workFlowPoc2.getMyKey().getWF_AttrID() == 17;
     }
 
     private static boolean isCustomerAnnualIncomeSelected(WorkFlowPoc workFlowPoc2) {
-        return workFlowPoc2.getMyKey().getWF_AttrID() == 9;
+        return workFlowPoc2.getMyKey().getWF_AttrID() == 16;
     }
 
     private static boolean isOrderSerialNumberSelected(WorkFlowPoc workFlowPoc2) {
-        return workFlowPoc2.getMyKey().getWF_AttrID() == 8;
+        return workFlowPoc2.getMyKey().getWF_AttrID() == 15;
     }
 
     private static boolean isAccountCreationBranchSelected(WorkFlowPoc workFlowPoc2) {
