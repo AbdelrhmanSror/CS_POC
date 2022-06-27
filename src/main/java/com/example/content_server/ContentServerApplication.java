@@ -1,6 +1,5 @@
 package com.example.content_server;
 
-import com.example.content_server.repository.CustomerRepository;
 import com.example.content_server.repository.WorkFlowPocRepository;
 import com.example.content_server.service.*;
 import com.example.content_server.utility.Utilities;
@@ -31,7 +30,7 @@ public class ContentServerApplication {
 
 
     @Bean
-    public CommandLineRunner demo(WorkFlowPocRepository repository, CustomerRepository customerRepository) {
+    public CommandLineRunner demo(WorkFlowPocRepository repository) {
         return (args -> {
             /**
              * <?xml version="1.0"?>
@@ -48,9 +47,10 @@ public class ContentServerApplication {
              */
             // fetch all customers
             log.info("Customers Saved with SAVe():");
+            String idNumber = "26908241300412";
+            log.info("Date From ID NUmber is :" + Utilities.getBirthDateUsingIdNumber("29307935414896"));
 
 
-            log.info("ocr= " + customerRepository.findById(58795L));
             log.info("ORDER ID= " + Utilities.getWorkFlowPocAttributes(repository.findAllWorkFlowWIthId(814140)));
             //new NodeService().createNode(new AuthenticationService().getToken("admin","Asset99a"), NodeType.FOLDER.getNodeTypeId(),"811398","xyztest");
             log.info("count= " + repository.getWorkFlowId());

@@ -3,9 +3,35 @@ package com.example.content_server.utility;
 import com.example.content_server.models.poc.WorkFlowPoc;
 import com.example.content_server.models.poc.WorkFlowPocAttribute;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class Utilities {
+
+    public static Date getBirthDateUsingIdNumber(String idNumber) {
+        String month = idNumber.substring(3, 5);
+        String year = idNumber.substring(1, 3);
+        String day = idNumber.substring(5, 7);
+/*
+        2022-06-28 00:00:00.000
+*/
+        String centuryCode = idNumber.substring(0, 1);
+        if (centuryCode.equals("2")) {
+            year = "19" + year;
+
+        } else if (centuryCode.equals("3")) {
+            year = "20" + year;
+
+        }
+        try {
+            return new SimpleDateFormat("yyyy-MM-dd").parse(year + "-" + month + "-" + day);
+        } catch (ParseException e) {
+            return null;
+        }
+        //return year+"-"+month+"-"+day
+    }
 
     public static WorkFlowPocAttribute getWorkFlowPocAttributes(List<WorkFlowPoc> workFlowPoc) {
 

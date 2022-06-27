@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -21,6 +22,11 @@ public interface WorkFlowPocRepository extends CrudRepository<WorkFlowPoc, Prima
     @Transactional
     @Query(value = "update  WFAttrData set WF_ValStr=:status where WF_ID=:wf_id and WF_AttrID=12 ", nativeQuery = true)
     void updateStatus(@Param("wf_id") long id, @Param("status") String status);
+
+    @Modifying
+    @Transactional
+    @Query(value = "update  WFAttrData set WF_ValDate=:birthDate where WF_ID=:wf_id and WF_AttrID=13 ", nativeQuery = true)
+    void updateBirthDate(@Param("wf_id") long id, @Param("birthDate") Date birthDate);
 
     @Modifying
     @Transactional

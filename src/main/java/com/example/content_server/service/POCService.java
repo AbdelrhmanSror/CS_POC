@@ -2,6 +2,7 @@ package com.example.content_server.service;
 
 import com.example.content_server.constant.DocumentFolder;
 import com.example.content_server.constant.NodeType;
+import com.example.content_server.constant.Status;
 import com.example.content_server.models.Node;
 import com.example.content_server.models.OcrCustomer;
 import com.example.content_server.models.poc.WorkFlowPocAttribute;
@@ -19,7 +20,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.example.content_server.constant.Constants.*;
@@ -78,15 +78,16 @@ public class POCService {
         workFlowPocRepository.updateCustomerName(processWorkFlowId, name);
         workFlowPocRepository.updateIdNumber(processWorkFlowId, idNumber);
         workFlowPocRepository.updateResidence(processWorkFlowId, address);
+        workFlowPocRepository.updateBirthDate(processWorkFlowId, Utilities.getBirthDateUsingIdNumber(idNumber));
     }
 
     private void setStatusBasedOnCondition(Long processWorkFlowId, OcrCustomer ocrCustomerXml, Optional<OcrCustomer> ocrCustomerDatabase) {
         if (!ocrCustomerDatabase.isPresent()) {
-            workFlowPocRepository.updateStatus(processWorkFlowId, "عميل جديد");
+            workFlowPocRepository.updateStatus(processWorkFlowId, Status.NewCustomer.getStatus());
         } else if (ocrCustomerDatabase.get().getAddress().equals(ocrCustomerXml.getAddress())) {
-            workFlowPocRepository.updateStatus(processWorkFlowId, "عميل حالي :بطاقه غير محدثه");
+            workFlowPocRepository.updateStatus(processWorkFlowId, Status.CurrentCustomer_NotUpdated.getStatus());
         } else {
-            workFlowPocRepository.updateStatus(processWorkFlowId, "عميل حالي :بطاقه محدثه");
+            workFlowPocRepository.updateStatus(processWorkFlowId, Status.CurrentCustomer_Updated.getStatus());
 
         }
     }
@@ -107,23 +108,20 @@ public class POCService {
         //getting the attribute of the workflow requested from the database server
         WorkFlowPocAttribute workFlowPocAttribute = Utilities.getWorkFlowPocAttributes(workFlowPocRepository.findAllWorkFlowWIthId(workFlowId));
         OcrCustomer ocrCustomerFromXml = new OcrCustomer();
-        Optional<OcrCustomer> ocrCustomerFromDatabase = customerRepository.findById(Long.valueOf(workFlowPocAttribute.getIdNumber()));
         ocrCustomerFromXml.setAddress(workFlowPocAttribute.getResidence());
         ocrCustomerFromXml.setCustomerName(workFlowPocAttribute.getCustomerName());
         ocrCustomerFromXml.setIdNumber(Long.valueOf(workFlowPocAttribute.getIdNumber()));
+        System.out.println("before " + ocrCustomerFromXml);
         customerRepository.save(ocrCustomerFromXml);
-        System.out.println(ocrCustomerFromXml);
-        System.out.println(ocrCustomerFromDatabase);
 
         //get the name of the attachment document.
         String docName = getNameOfAttachmentDocument(docId);
-        System.out.println("name of attachment document =" + docName + "      state" + ocrCustomerFromDatabase.isPresent());
+
 
         // updating the name of the attachment to avoid conflict of names.
         //updatingNameOfAttachment(docId, docName);
-        updatingCategoryOnCustomerFolderAndMoveAttachmentToItOnlyIfCustomerExists(docId, workFlowPocAttribute, ocrCustomerFromDatabase);
-        createCustomerFolderInApprovedFolderAndApplyCategoryToItAndMoveAttachmentToItOnlyIfCustomerNotExists(docId, workFlowPocAttribute, ocrCustomerFromDatabase);
-
+        updatingCategoryOnCustomerFolderAndMoveAttachmentToItOnlyIfCustomerExists(docId, workFlowPocAttribute);
+        createCustomerFolderInApprovedFolderAndApplyCategoryToItAndMoveAttachmentToItOnlyIfCustomerNotExists(docId, workFlowPocAttribute);
     }
 
     private void moveInputDocumentToWorkFlowAttachmentFolder(Integer workFlowAttachmentFolderId, Integer inputDocId) {
@@ -147,8 +145,8 @@ public class POCService {
     }
 
 
-    private void createCustomerFolderInApprovedFolderAndApplyCategoryToItAndMoveAttachmentToItOnlyIfCustomerNotExists(Integer docId, WorkFlowPocAttribute workFlowPocAttribute, Optional<OcrCustomer> ocrCustomerDatabase) {
-        if (!ocrCustomerDatabase.isPresent()) {
+    private void createCustomerFolderInApprovedFolderAndApplyCategoryToItAndMoveAttachmentToItOnlyIfCustomerNotExists(Integer docId, WorkFlowPocAttribute workFlowPocAttribute) {
+        if (workFlowPocAttribute.getStatus().equals(Status.NewCustomer.getStatus())) {
             //create folder with the same name of the customer name
             nodeService.createNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), NodeType.FOLDER.getNodeTypeId(), Integer.valueOf(DocumentFolder.Approved.getFolderId()), workFlowPocAttribute.getCustomerName());
             Integer newNodeId = nodeService.getNodeWithName(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), Integer.valueOf(DocumentFolder.Approved.getFolderId()), workFlowPocAttribute.getCustomerName()).getId();
@@ -159,15 +157,15 @@ public class POCService {
         }
     }
 
-    private void updatingCategoryOnCustomerFolderAndMoveAttachmentToItOnlyIfCustomerExists(Integer docId, WorkFlowPocAttribute workFlowPocAttribute, Optional<OcrCustomer> ocrCustomerDatabase) {
-        if (ocrCustomerDatabase.isPresent()) {
-            Node node = getNodeWithNameInTheApprovedFolder(ocrCustomerDatabase.get().getCustomerName());
+    private void updatingCategoryOnCustomerFolderAndMoveAttachmentToItOnlyIfCustomerExists(Integer docId, WorkFlowPocAttribute workFlowPocAttribute) {
+        if (workFlowPocAttribute.getStatus().equals(Status.CurrentCustomer_Updated.getStatus()) || workFlowPocAttribute.getStatus().equals(Status.CurrentCustomer_NotUpdated.getStatus())) {
+            Node node = getNodeWithNameInTheApprovedFolder(workFlowPocAttribute.getCustomerName());
             //getting the attribute values of the category set on the node that match the name inserted on workflow attribute or return null
             categoryService.updateCategory(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), node.getId(), workFlowPocAttribute);
             //moving the attachment to the the folder only in case if the address has changed
-            System.out.println("workFlowPocAttribute=" + workFlowPocAttribute.getResidence() + "   address in database" + ocrCustomerDatabase.get().getAddress());
+            System.out.println("workFlowPocAttribute=" + workFlowPocAttribute.getResidence() + "   address in database" + workFlowPocAttribute.getResidence());
 
-            if (!(Objects.equals(ocrCustomerDatabase.get().getAddress(), workFlowPocAttribute.getResidence()))) {
+            if (workFlowPocAttribute.getStatus().equals(Status.CurrentCustomer_Updated.getStatus())) {
                 System.out.println("adreess has chnaged ");
                 nodeService.moveNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), docId, node.getId());
 
