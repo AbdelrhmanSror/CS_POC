@@ -1,4 +1,4 @@
-package com.example.content_server.models.poc;
+package com.example.content_server.models.workflow;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -18,7 +18,7 @@ public class WorkFlowPoc {
     @EmbeddedId
     private PrimaryKeyPoc myKey;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Africa/Cairo")
     @Column(name = "WF_ValDate")
     private Date WF_ValDate;
 

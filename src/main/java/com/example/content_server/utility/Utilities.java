@@ -1,7 +1,7 @@
 package com.example.content_server.utility;
 
-import com.example.content_server.models.poc.WorkFlowPoc;
-import com.example.content_server.models.poc.WorkFlowPocAttribute;
+import com.example.content_server.models.workflow.WorkFlowPoc;
+import com.example.content_server.models.workflow.WorkFlowPocAttribute;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -10,22 +10,28 @@ import java.util.List;
 
 public class Utilities {
 
+    public static String getDateFormatString(Date date, String pattern) {
+        return new SimpleDateFormat(pattern).format(date);
+    }
+
     public static Date getBirthDateUsingIdNumber(String idNumber) {
         String month = idNumber.substring(3, 5);
         String year = idNumber.substring(1, 3);
         String day = idNumber.substring(5, 7);
-/*
-        2022-06-28 00:00:00.000
-*/
-        String centuryCode = idNumber.substring(0, 1);
-        if (centuryCode.equals("2")) {
-            year = "19" + year;
 
+        /* if (centuryCode.equals("2")) {
+            year = "19" + year;
         } else if (centuryCode.equals("3")) {
             year = "20" + year;
-
-        }
+        }*/
+        String centuryCode = idNumber.substring(0, 1);
+        int century = 19 + Integer.parseInt(centuryCode) % 2;
+        year = century + year;
         try {
+            String pattern = "MM-dd-yyyy";
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+            String date = simpleDateFormat.format(new Date());
+            System.out.println(date);
             return new SimpleDateFormat("yyyy-MM-dd").parse(year + "-" + month + "-" + day);
         } catch (ParseException e) {
             return null;
@@ -56,7 +62,7 @@ public class Utilities {
             } else if (isStatusSelected(flowPoc)) {
                 attribute.setStatus(flowPoc.getWF_ValStr());
             } else if (isBirthDateSelected(flowPoc)) {
-                attribute.setBirthDate(flowPoc.getWF_ValDate());
+                attribute.setBirthDate(getDateFormatString(flowPoc.getWF_ValDate(), "yyyy-MM-dd"));
             } else if (isRequestReceivedDateSelected(flowPoc)) {
                 attribute.setRequestReceivedDate(flowPoc.getWF_ValDate());
             }

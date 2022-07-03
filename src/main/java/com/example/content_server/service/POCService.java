@@ -1,18 +1,23 @@
 package com.example.content_server.service;
 
+import com.example.content_server.ContentServerApplication;
 import com.example.content_server.constant.DocumentFolder;
 import com.example.content_server.constant.NodeType;
 import com.example.content_server.constant.Status;
 import com.example.content_server.models.Node;
-import com.example.content_server.models.OcrCustomer;
-import com.example.content_server.models.poc.WorkFlowPocAttribute;
-import com.example.content_server.repository.CustomerRepository;
+import com.example.content_server.models.ocr.ApprovedOcrCustomer;
+import com.example.content_server.models.ocr.OcrCustomer;
+import com.example.content_server.models.ocr.RejectedOcrCustomer;
+import com.example.content_server.models.workflow.WorkFlowPocAttribute;
+import com.example.content_server.repository.ApprovedCustomerRepository;
+import com.example.content_server.repository.RejectedOcrCustomerRepository;
 import com.example.content_server.repository.WorkFlowPocRepository;
 import com.example.content_server.utility.Utilities;
 import com.example.content_server.utility.XmlParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.client.HttpServerErrorException;
 import org.w3c.dom.Element;
 
@@ -20,7 +25,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 import static com.example.content_server.constant.Constants.*;
 
@@ -34,42 +38,34 @@ public class POCService {
     private AuthenticationService authenticationService;
     @Autowired
     private WorkFlowPocRepository workFlowPocRepository;
+    private static final Logger logger = LoggerFactory.getLogger(ContentServerApplication.class);
     @Autowired
-    private WorkflowService workflowService;
-
+    private ApprovedCustomerRepository approvedCustomerRepository;
     @Autowired
-    private CustomerRepository customerRepository;
-
+    private RejectedOcrCustomerRepository rejectedOcrCustomerRepository;
 
     public void InitiatePocWorkflow(Integer inputDocId, Integer workFlowId, Integer attachmentFolderId) {
         if (workFlowId != 0 && attachmentFolderId != 0) {
-            // nodeService.callWebReport(authenticationService.getToken(ADMIN_USER_NAME,ADMIN_PASSWORD),820759);
             //initiating workflow
-            System.out.println("process  =" + workFlowId);
-            System.out.println("workflow attachment folder id =" + attachmentFolderId);
+            logger.info("process  =" + workFlowId);
+            logger.info("workflow attachment folder id =" + attachmentFolderId);
             //getting the attribute values of the category set on the node that match the name inserted on workflow attribute or return null
             Element element = XmlParser.getParsedXML();
             String name = element.getElementsByTagName("الاسم").item(0).getTextContent();
             String idNumber = element.getElementsByTagName("الرقم_القومى").item(0).getTextContent();
             String address = element.getElementsByTagName("العنوان").item(0).getTextContent();
-            Optional<OcrCustomer> ocrCustomerFromDatabase = customerRepository.findById(Long.valueOf(idNumber));
-            OcrCustomer ocrCustomerFromXml = new OcrCustomer();
+            ApprovedOcrCustomer approvedOcrCustomerFromDatabase = approvedCustomerRepository.findById(Long.valueOf(idNumber)).orElse(null);
+            OcrCustomer ocrCustomerFromXml = new ApprovedOcrCustomer();
             ocrCustomerFromXml.setAddress(address);
             ocrCustomerFromXml.setCustomerName(address);
             ocrCustomerFromXml.setIdNumber(Long.valueOf(idNumber));
 
-            System.out.println("name:" + name + " idNumber " + idNumber + "  address" + address + " work flow id" + WORKFLOW_ID + " process work flow id" + workFlowId + " workFlowAttachmentFolderId" + attachmentFolderId);
-            System.out.println("inputDocID from web report =  " + inputDocId + " inputDocID from calling api   " + nodeService.getSubNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), INPUT_FOLDER_ID).getId());
-            // WorkFlowPocAttribute contentServerPocCategoryAttribute = nodeService.getNodeWithName(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), Integer.valueOf(DocumentFolder.Approved.getFolderId()), name).getWorkFlowPocAttribute();
+            logger.info("name:" + name + " idNumber " + idNumber + "  address" + address + " work flow id" + WORKFLOW_ID + " process work flow id" + workFlowId + " workFlowAttachmentFolderId" + attachmentFolderId);
+            logger.info("inputDocID from web report =  " + inputDocId + " inputDocID from calling api   " + nodeService.getSubNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), INPUT_FOLDER_ID).getId());
 
-
-            setStatusBasedOnCondition(Long.valueOf(workFlowId), ocrCustomerFromXml, ocrCustomerFromDatabase);
+            setStatusBasedOnCondition(Long.valueOf(workFlowId), ocrCustomerFromXml, approvedOcrCustomerFromDatabase);
             updateWorkFlowDataBasedOnDataOnXml(Long.valueOf(workFlowId), name, idNumber, address);
-            downloadInputDocumentFromServerToLocal(inputDocId, name);
-
-            //nodeService.copyNode(authenticationService.getToken(ABE_BRANCH_MAKER_USER_NAME,ABE_BRANCH_MAKER_PASSWORD),workFlowAttachmentFolderId,inputDocId);
-            //  moveInputDocumentToWorkFlowAttachmentFolder(workFlowAttachmentFolderId, inputDocId);
-
+            //downloadInputDocumentFromServerToLocal(inputDocId, name);
         }
     }
 
@@ -81,10 +77,10 @@ public class POCService {
         workFlowPocRepository.updateBirthDate(processWorkFlowId, Utilities.getBirthDateUsingIdNumber(idNumber));
     }
 
-    private void setStatusBasedOnCondition(Long processWorkFlowId, OcrCustomer ocrCustomerXml, Optional<OcrCustomer> ocrCustomerDatabase) {
-        if (!ocrCustomerDatabase.isPresent()) {
+    private void setStatusBasedOnCondition(Long processWorkFlowId, OcrCustomer ocrCustomerXml, OcrCustomer ocrCustomerDatabase) {
+        if (ocrCustomerDatabase == null) {
             workFlowPocRepository.updateStatus(processWorkFlowId, Status.NewCustomer.getStatus());
-        } else if (ocrCustomerDatabase.get().getAddress().equals(ocrCustomerXml.getAddress())) {
+        } else if (ocrCustomerDatabase.getAddress().equals(ocrCustomerXml.getAddress())) {
             workFlowPocRepository.updateStatus(processWorkFlowId, Status.CurrentCustomer_NotUpdated.getStatus());
         } else {
             workFlowPocRepository.updateStatus(processWorkFlowId, Status.CurrentCustomer_Updated.getStatus());
@@ -103,49 +99,24 @@ public class POCService {
         }
     }
 
-    public void createNodeAndApplyCategory(Integer docId, Integer workFlowId) {
+    public void saveID(Integer docId, Integer workFlowId) {
         System.out.println("document id from create and apply =" + docId);
         //getting the attribute of the workflow requested from the database server
         WorkFlowPocAttribute workFlowPocAttribute = Utilities.getWorkFlowPocAttributes(workFlowPocRepository.findAllWorkFlowWIthId(workFlowId));
-        OcrCustomer ocrCustomerFromXml = new OcrCustomer();
-        ocrCustomerFromXml.setAddress(workFlowPocAttribute.getResidence());
-        ocrCustomerFromXml.setCustomerName(workFlowPocAttribute.getCustomerName());
-        ocrCustomerFromXml.setIdNumber(Long.valueOf(workFlowPocAttribute.getIdNumber()));
-        System.out.println("before " + ocrCustomerFromXml);
-        customerRepository.save(ocrCustomerFromXml);
+        //workFlowPocAttribute.setBirthDate(Utilities.getDateFormatString(Utilities.getBirthDateUsingIdNumber(workFlowPocAttribute.getIdNumber()), "yyyy-MM-dd"));
+        ApprovedOcrCustomer ocrCustomer = new ApprovedOcrCustomer();
+        ocrCustomer.setAddress(workFlowPocAttribute.getResidence());
+        ocrCustomer.setCustomerName(workFlowPocAttribute.getCustomerName());
+        ocrCustomer.setIdNumber(Long.valueOf(workFlowPocAttribute.getIdNumber()));
 
-        //get the name of the attachment document.
-        String docName = getNameOfAttachmentDocument(docId);
-
-
-        // updating the name of the attachment to avoid conflict of names.
-        //updatingNameOfAttachment(docId, docName);
-        updatingCategoryOnCustomerFolderAndMoveAttachmentToItOnlyIfCustomerExists(docId, workFlowPocAttribute);
-        createCustomerFolderInApprovedFolderAndApplyCategoryToItAndMoveAttachmentToItOnlyIfCustomerNotExists(docId, workFlowPocAttribute);
-    }
-
-    private void moveInputDocumentToWorkFlowAttachmentFolder(Integer workFlowAttachmentFolderId, Integer inputDocId) {
-        System.out.println("doc id from input folder " + inputDocId);
-        try {
-            nodeService.moveNode(authenticationService.getToken(ABE_BRANCH_MAKER_USER_NAME, ABE_BRANCH_MAKER_PASSWORD), inputDocId, workFlowAttachmentFolderId);
-
-        } catch (HttpServerErrorException e) {
-            e.printStackTrace();
-        }
-
+        updatingCategoryOnCustomerFolderAndMoveAttachmentToItOnlyIfCustomerExists(docId, workFlowPocAttribute, ocrCustomer);
+        createCustomerFolderAndApplyCategoryToItAndMoveAttachmentToItOnlyIfCustomerNotExists(docId, workFlowPocAttribute, ocrCustomer);
+        approvedCustomerRepository.save(ocrCustomer);
 
     }
 
-    private boolean isAddressTheSame(String address, WorkFlowPocAttribute contentServerPocCategoryAttribute) {
-        return address.equals(contentServerPocCategoryAttribute.getResidence());
-    }
 
-    private boolean isNotExist(WorkFlowPocAttribute contentServerPocCategoryAttribute) {
-        return contentServerPocCategoryAttribute == null;
-    }
-
-
-    private void createCustomerFolderInApprovedFolderAndApplyCategoryToItAndMoveAttachmentToItOnlyIfCustomerNotExists(Integer docId, WorkFlowPocAttribute workFlowPocAttribute) {
+    private void createCustomerFolderAndApplyCategoryToItAndMoveAttachmentToItOnlyIfCustomerNotExists(Integer docId, WorkFlowPocAttribute workFlowPocAttribute, ApprovedOcrCustomer approvedOcrCustomer) {
         if (workFlowPocAttribute.getStatus().equals(Status.NewCustomer.getStatus())) {
             //create folder with the same name of the customer name
             nodeService.createNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), NodeType.FOLDER.getNodeTypeId(), Integer.valueOf(DocumentFolder.Approved.getFolderId()), workFlowPocAttribute.getCustomerName());
@@ -153,36 +124,72 @@ public class POCService {
             //apply category on the newly created node
             categoryService.applyPocCategory(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), newNodeId, workFlowPocAttribute);
             //moving the attachment to the location of the newly created folder.
+            //renaming the doc name so it be the idNumber_numberOfExistence
+            nodeService.renameNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), docId, workFlowPocAttribute.getIdNumber() + "_" + approvedOcrCustomer.getExistenceTimes());
             nodeService.moveNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), docId, newNodeId);
+            approvedOcrCustomer.setExistenceTimes(0);
+
         }
     }
 
-    private void updatingCategoryOnCustomerFolderAndMoveAttachmentToItOnlyIfCustomerExists(Integer docId, WorkFlowPocAttribute workFlowPocAttribute) {
+    private void updatingCategoryOnCustomerFolderAndMoveAttachmentToItOnlyIfCustomerExists(Integer docId, WorkFlowPocAttribute workFlowPocAttribute, ApprovedOcrCustomer approvedOcrCustomer) {
         if (workFlowPocAttribute.getStatus().equals(Status.CurrentCustomer_Updated.getStatus()) || workFlowPocAttribute.getStatus().equals(Status.CurrentCustomer_NotUpdated.getStatus())) {
-            Node node = getNodeWithNameInTheApprovedFolder(workFlowPocAttribute.getCustomerName());
+            Node node = getNodeWithNameInFolder(workFlowPocAttribute.getCustomerName(), Integer.parseInt(DocumentFolder.Approved.getFolderId()));
             //getting the attribute values of the category set on the node that match the name inserted on workflow attribute or return null
             categoryService.updateCategory(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), node.getId(), workFlowPocAttribute);
             //moving the attachment to the the folder only in case if the address has changed
             System.out.println("workFlowPocAttribute=" + workFlowPocAttribute.getResidence() + "   address in database" + workFlowPocAttribute.getResidence());
 
             if (workFlowPocAttribute.getStatus().equals(Status.CurrentCustomer_Updated.getStatus())) {
+                approvedOcrCustomer.setExistenceTimes(1 + approvedCustomerRepository.findRepetitionTimes(approvedOcrCustomer.getIdNumber()));
                 System.out.println("adreess has chnaged ");
+                //renaming the doc name so it be the idNumber_numberOfExistence
+                nodeService.renameNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), docId, workFlowPocAttribute.getIdNumber() + "_" + approvedOcrCustomer.getExistenceTimes());
                 nodeService.moveNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), docId, node.getId());
 
             }
         }
     }
 
-    private void updatingNameOfAttachment(@PathVariable(name = "documentID") Integer docId, String docName) {
-        nodeService.renameNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), docId, docName + "_" + docId);
+
+    private Node getNodeWithNameInFolder(String name, int folderId) {
+        return nodeService.getNodeWithName(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), folderId, name);
     }
 
-    private String getNameOfAttachmentDocument(@PathVariable(name = "documentID") Integer docId) {
-        return nodeService.getNodeWitID(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), docId).getName();
-    }
+    public void archiveID(Integer docId, Integer workFlowId) {
+        System.out.println("document id from create and apply =" + docId);
+        //getting the attribute of the workflow requested from the database server
+        WorkFlowPocAttribute workFlowPocAttribute = Utilities.getWorkFlowPocAttributes(workFlowPocRepository.findAllWorkFlowWIthId(workFlowId));
+        workFlowPocAttribute.setStatus(Status.REJECTED.getStatus());
+        // workFlowPocAttribute.setBirthDate(Utilities.getDateFormatString(Utilities.getBirthDateUsingIdNumber(workFlowPocAttribute.getIdNumber()), "yyyy-MM-dd"));
+        logger.info(workFlowPocAttribute.toString());
+        RejectedOcrCustomer rejectedOcrCustomerFromXml = new RejectedOcrCustomer();
+        rejectedOcrCustomerFromXml.setAddress(workFlowPocAttribute.getResidence());
+        rejectedOcrCustomerFromXml.setCustomerName(workFlowPocAttribute.getCustomerName());
+        rejectedOcrCustomerFromXml.setIdNumber(Long.valueOf(workFlowPocAttribute.getIdNumber()));
+        if (!rejectedOcrCustomerRepository.existsById(rejectedOcrCustomerFromXml.getIdNumber())) {
+            nodeService.createNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), NodeType.FOLDER.getNodeTypeId(), Integer.valueOf(DocumentFolder.Rejected.getFolderId()), workFlowPocAttribute.getCustomerName());
+            Integer newNodeId = nodeService.getNodeWithName(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), Integer.valueOf(DocumentFolder.Rejected.getFolderId()), workFlowPocAttribute.getCustomerName()).getId();
+            categoryService.applyPocCategory(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), newNodeId, workFlowPocAttribute);
+            rejectedOcrCustomerFromXml.setExistenceTimes(0);
+            //renaming the doc name so it be the idNumber_numberOfExistence
+            nodeService.renameNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), docId, workFlowPocAttribute.getIdNumber() + "_" + rejectedOcrCustomerFromXml.getExistenceTimes());
+            nodeService.moveNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), docId, newNodeId);
+        } else {
+            Node node = getNodeWithNameInFolder(workFlowPocAttribute.getCustomerName(), Integer.parseInt(DocumentFolder.Rejected.getFolderId()));
+            logger.info(node.toString());
+            categoryService.updateCategory(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), node.getId(), workFlowPocAttribute);
+            logger.info("adreess has chnaged " + rejectedOcrCustomerFromXml);
+            if (!rejectedOcrCustomerFromXml.getAddress().equals(rejectedOcrCustomerRepository.findById(rejectedOcrCustomerFromXml.getIdNumber()).get().getAddress())) {
+                rejectedOcrCustomerFromXml.setExistenceTimes(1 + rejectedOcrCustomerRepository.findRepetitionTimes(rejectedOcrCustomerFromXml.getIdNumber()));
+                //renaming the doc name so it be the idNumber_numberOfExistence
+                nodeService.renameNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), docId, workFlowPocAttribute.getIdNumber() + "_" + rejectedOcrCustomerFromXml.getExistenceTimes());
+                nodeService.moveNode(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), docId, node.getId());
+            }
+        }
+        rejectedOcrCustomerRepository.save(rejectedOcrCustomerFromXml);
 
-    private Node getNodeWithNameInTheApprovedFolder(String name) {
-        return nodeService.getNodeWithName(authenticationService.getToken(ADMIN_USER_NAME, ADMIN_PASSWORD), Integer.valueOf(DocumentFolder.Approved.getFolderId()), name);
+
     }
 
 }

@@ -1,4 +1,4 @@
-package com.example.content_server.models.poc;
+package com.example.content_server.models.workflow;
 
 import java.util.Date;
 
@@ -6,7 +6,7 @@ public class WorkFlowPocAttribute {
 
     private String customerName;
     private String idNumber;
-    private Date birthDate;
+    private String birthDate;
     private String residence;
     private String accountCreationBranch;
     private Date requestReceivedDate;
@@ -32,11 +32,11 @@ public class WorkFlowPocAttribute {
         this.idNumber = idNumber;
     }
 
-    public Date getBirthDate() {
+    public String getBirthDate() {
         return birthDate;
     }
 
-    public void setBirthDate(Date birthDate) {
+    public void setBirthDate(String birthDate) {
         this.birthDate = birthDate;
     }
 

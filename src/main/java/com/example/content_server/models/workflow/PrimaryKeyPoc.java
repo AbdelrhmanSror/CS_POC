@@ -1,4 +1,4 @@
-package com.example.content_server.models.poc;
+package com.example.content_server.models.workflow;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;

@@ -1,7 +1,7 @@
 package com.example.content_server.service;
 
 import com.example.content_server.constant.PocCategory;
-import com.example.content_server.models.poc.WorkFlowPocAttribute;
+import com.example.content_server.models.workflow.WorkFlowPocAttribute;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

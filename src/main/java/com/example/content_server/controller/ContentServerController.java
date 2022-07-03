@@ -42,9 +42,23 @@ public class ContentServerController {
             e.printStackTrace();
         }
         assert jsonObj != null;
-        pocService.createNodeAndApplyCategory(jsonObj.get("docId").asInt(), jsonObj.get("workFlowId").asInt());
+        pocService.saveID(jsonObj.get("docId").asInt(), jsonObj.get("workFlowId").asInt());
 
     }
 
+
+    @PostMapping("/PocRejected")
+    public void archiveDocument(@RequestBody String json) {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonObj = null;
+        try {
+            jsonObj = mapper.readTree(json.replace('=', ':'));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        assert jsonObj != null;
+        pocService.archiveID(jsonObj.get("docId").asInt(), jsonObj.get("workFlowId").asInt());
+
+    }
 
 }

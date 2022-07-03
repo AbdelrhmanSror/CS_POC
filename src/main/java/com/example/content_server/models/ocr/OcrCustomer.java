@@ -1,12 +1,10 @@
-package com.example.content_server.models;
+package com.example.content_server.models.ocr;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
+
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @Entity
-@Table(name = "OcrCustomer")
 public class OcrCustomer {
 
     @Column(name = "customer_name")
@@ -16,6 +14,8 @@ public class OcrCustomer {
     @Id
     @Column(name = "id_number")
     private Long idNumber;
+    @Column(name = "existence_times")
+    private Integer existenceTimes = 0;
 
     public String getCustomerName() {
         return customerName;
@@ -41,12 +41,21 @@ public class OcrCustomer {
         this.idNumber = idNumber;
     }
 
+    public Integer getExistenceTimes() {
+        return existenceTimes;
+    }
+
+    public void setExistenceTimes(Integer existenceTimes) {
+        this.existenceTimes = existenceTimes;
+    }
+
     @Override
     public String toString() {
         return "OcrCustomer{" +
                 "customerName='" + customerName + '\'' +
                 ", address='" + address + '\'' +
-                ", idNumber='" + idNumber + '\'' +
+                ", idNumber=" + idNumber +
+                ", existenceTimes=" + existenceTimes +
                 '}';
     }
 }

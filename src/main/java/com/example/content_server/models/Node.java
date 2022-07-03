@@ -1,6 +1,5 @@
 package com.example.content_server.models;
 
-import com.example.content_server.models.poc.WorkFlowPocAttribute;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
@@ -11,7 +10,6 @@ public class Node {
 
     private Integer id = null;
     private String name = "";
-    private WorkFlowPocAttribute workFlowPocAttribute = null;
 
 
     @SuppressWarnings("unchecked")
@@ -43,13 +41,6 @@ public class Node {
             this.id = (Integer) properties.get("id");
             this.name = (String.valueOf(properties.get("name")));
 
-            if (!category.isEmpty()) {
-                workFlowPocAttribute = new WorkFlowPocAttribute();
-                workFlowPocAttribute.setCustomerName((String) category.get(0).get("811201_2"));
-                workFlowPocAttribute.setIdNumber((String) category.get(0).get("811201_3"));
-                workFlowPocAttribute.setResidence((String) category.get(0).get("811201_5"));
-            }
-
         } catch (NullPointerException e) {
             id = null;
         }
@@ -63,11 +54,13 @@ public class Node {
         return name;
     }
 
-    public WorkFlowPocAttribute getWorkFlowPocAttribute() {
-        return workFlowPocAttribute;
+    @Override
+    public String toString() {
+        return "Node{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                '}';
     }
 
-    public Boolean isExist() {
-        return id != null;
-    }
+
 }

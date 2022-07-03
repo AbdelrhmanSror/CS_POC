@@ -1,8 +1,7 @@
 package com.example.content_server;
 
-import com.example.content_server.repository.WorkFlowPocRepository;
+import com.example.content_server.repository.ApprovedCustomerRepository;
 import com.example.content_server.service.*;
-import com.example.content_server.utility.Utilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -19,6 +18,7 @@ import java.util.Map;
 public class ContentServerApplication {
     private static final Logger log = LoggerFactory.getLogger(ContentServerApplication.class);
 
+
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication(ContentServerApplication.class);
         Map<String, Object> map = new HashMap<>();
@@ -30,34 +30,26 @@ public class ContentServerApplication {
 
 
     @Bean
-    public CommandLineRunner demo(WorkFlowPocRepository repository) {
+    public CommandLineRunner demo(ApprovedCustomerRepository approvedCustomerRepository) {
         return (args -> {
-            /**
-             * <?xml version="1.0"?>
-             *
-             * -<employee>
-             *
-             * <الاسم>محمد ااحمد السيد</الاسم>
-             *
-             * <الرقم_القومى>29307935414896</الرقم_القومى>
-             *
-             * <العنوان>مدينه نصر</العنوان>
-             *
-             * </employee>
-             */
+           /* Element element = XmlParser.getParsedXML();
+            String name = element.getElementsByTagName("الاسم").item(0).getTextContent();
+            String idNumber = element.getElementsByTagName("الرقم_القومى").item(0).getTextContent();
+            String address = element.getElementsByTagName("العنوان").item(0).getTextContent();
+            ApprovedOcrCustomer ocrCustomerFromXml = new ApprovedOcrCustomer();
+            ocrCustomerFromXml.setCustomerName(name);
+            ocrCustomerFromXml.setAddress(address);
+            ocrCustomerFromXml.setIdNumber(Long.valueOf(idNumber));
+            approvedCustomerRepository.save(ocrCustomerFromXml);
             // fetch all customers
-            log.info("Customers Saved with SAVe():");
-            String idNumber = "26908241300412";
-            log.info("Date From ID NUmber is :" + Utilities.getBirthDateUsingIdNumber("29307935414896"));
-
-
-            log.info("ORDER ID= " + Utilities.getWorkFlowPocAttributes(repository.findAllWorkFlowWIthId(814140)));
-            //new NodeService().createNode(new AuthenticationService().getToken("admin","Asset99a"), NodeType.FOLDER.getNodeTypeId(),"811398","xyztest");
-            log.info("count= " + repository.getWorkFlowId());
-
+            log.info("Customers Saved with SAVED"+approvedCustomerRepository.findById(29307935414896L).get());
+*/
 
         });
     }
+
+
+
 
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {

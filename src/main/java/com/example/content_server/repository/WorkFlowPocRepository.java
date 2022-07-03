@@ -1,7 +1,7 @@
 package com.example.content_server.repository;
 
-import com.example.content_server.models.poc.PrimaryKeyPoc;
-import com.example.content_server.models.poc.WorkFlowPoc;
+import com.example.content_server.models.workflow.PrimaryKeyPoc;
+import com.example.content_server.models.workflow.WorkFlowPoc;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
